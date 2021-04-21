@@ -20,7 +20,7 @@ This quickstart can be deployed quickly using Ansible. Here are the steps.
 $ ansible-playbook -i ./.applier/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml
 ```
 
-At this point you should have 4 projects created (`basic-nginx-build`, `basic-nginx-dev`, `basic-nginx-stage`, and `basic-nginx-prod`) with a pipeline in the `-build` project, and our [Nginx](../basic-nginx) demo app deployed to the dev/stage/prod projects.
+At this point you should have 4 projects created (`basic-nginx-build`, `basic-nginx-int`, `basic-nginx-ap`, and `basic-nginx-op`) with a pipeline in the `-build` project, and our [Nginx](../basic-nginx) demo app deployed to the dev/stage/prod projects.
 
 ## Architecture
 
@@ -71,18 +71,18 @@ This pipeline defaults to use our [Nginx Demo App](../basic-nginx).
 For the purposes of this demo, we are going to create three stages for our application to be promoted through.
 
 - `basic-nginx-build`
-- `basic-nginx-dev`
-- `basic-nginx-stage`
-- `basic-nginx-prod`
+- `basic-nginx-int`
+- `basic-nginx-ap`
+- `basic-nginx-op`
 
 In the spirit of _Infrastructure as Code_ we have a YAML file that defines the `ProjectRequests` for us. This is as an alternative to running `oc new-project`, but will yeild the same result.
 
 ```
 $ oc create -f .openshift/projects/projects.yml
 projectrequest "basic-nginx-build" created
-projectrequest "basic-nginx-dev" created
-projectrequest "basic-nginx-stage" created
-projectrequest "basic-nginx-prod" created
+projectrequest "basic-nginx-int" created
+projectrequest "basic-nginx-ap" created
+projectrequest "basic-nginx-op" created
 ```
 
 ### 2. Stand up Jenkins master in dev
@@ -114,13 +114,13 @@ This template should be instantiated once in each of the namespaces that our app
 Deploy the deployment template to all three projects.
 ```
 $ oc process -f .openshift/deployment/template.yml -p=APPLICATION_NAME=basic-nginx
- -p NAMESPACE=basic-nginx-dev -p=SA_NAMESPACE=basic-nginx-build -p | oc apply -f-
+ -p NAMESPACE=basic-nginx-int -p=SA_NAMESPACE=basic-nginx-build -p | oc apply -f-
 
 $ oc process -f .openshift/deployment/template.yml -p=APPLICATION_NAME=basic-nginx
- -p NAMESPACE=basic-nginx-stage -p=SA_NAMESPACE=basic-nginx-build -p | oc apply -f- | oc apply -f-
+ -p NAMESPACE=basic-nginx-ap -p=SA_NAMESPACE=basic-nginx-build -p | oc apply -f- | oc apply -f-
 
 $ oc process -f .openshift/deployment/template.yml -p=APPLICATION_NAME=basic-nginxs
- -p NAMESPACE=basic-nginx-prod -p=SA_NAMESPACE=basic-nginx-build -p | oc apply -f-
+ -p NAMESPACE=basic-nginx-op -p=SA_NAMESPACE=basic-nginx-build -p | oc apply -f-
 ```
 
 A _build template_ is provided at `.openshift/builds/template.yml` that defines all the resources required to build our nginx app. It includes:
@@ -131,7 +131,7 @@ A _build template_ is provided at `.openshift/builds/template.yml` that defines 
 Deploy the pipeline template in build only.
 ```
 $ oc process -f applier/templates/build.yml -p=APPLICATION_NAME=basic-nginx
- -p NAMESPACE=basic-nginx-dev -p=SOURCE_REPOSITORY_URL="https://github.com/redhat-cop/container-pipelines.git" | oc apply -f-
+ -p NAMESPACE=basic-nginx-int -p=SOURCE_REPOSITORY_URL="https://github.com/redhat-cop/container-pipelines.git" | oc apply -f-
 ```
 
 At this point you should be able to go to the Web Console and follow the pipeline by clicking in your `basic-nginx-build` project, and going to *Builds* -> *Pipelines*. At several points you will be prompted for input on the pipeline. You can interact with it by clicking on the _input required_ link, which takes you to Jenkins, where you can click the *Proceed* button. By the time you get through the end of the pipeline you should be able to visit the Route for your app deployed to the `myapp-prod` project to confirm that your image has been promoted through all stages.
@@ -141,5 +141,5 @@ At this point you should be able to go to the Web Console and follow the pipelin
 Cleaning up this example is as simple as deleting the projects we created at the beginning.
 
 ```
-oc delete project basic-nginx-build basic-nginx-dev basic-nginx-prod basic-nginx-stage
+oc delete project basic-nginx-build basic-nginx-int basic-nginx-op basic-nginx-ap
 ```

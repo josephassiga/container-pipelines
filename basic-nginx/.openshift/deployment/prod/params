@@ -1,2 +1,2 @@
 APPLICATION_NAME=basic-nginx
-ENV=-prod
+ENV=-op

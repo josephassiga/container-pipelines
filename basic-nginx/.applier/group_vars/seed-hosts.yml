@@ -13,13 +13,13 @@ openshift_cluster_content:
   - name: jenkins
     namespace: basic-nginx-build
     template: openshift//jenkins-ephemeral
-  - name: basic-nginx-dev
+  - name: basic-nginx-int
     template: "{{ inventory_dir }}/../.openshift/deployment/template.yml"
     params: "{{ inventory_dir }}/../.openshift/deployment/dev/params"
-  - name: basic-nginx-stage
+  - name: basic-nginx-ap
     template: "{{ inventory_dir }}/../.openshift/deployment/template.yml"
     params: "{{ inventory_dir }}/../.openshift/deployment/stage/params"
-  - name: basic-nginx-prod
+  - name: basic-nginx-op
     template: "{{ inventory_dir }}/../.openshift/deployment/template.yml"
     params: "{{ inventory_dir }}/../.openshift/deployment/prod/params"
 - object: builds
